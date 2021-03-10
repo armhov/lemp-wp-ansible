@@ -1,2 +1,2 @@
 [webservers]
-client01 ansible_host=10.0.2.6 ansible_user=devops ansible_sudo_pass=devops 
+client01 ansible_host=10.0.2.6 ansible_sudo_pass=devops 
