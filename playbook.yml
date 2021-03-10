@@ -1,0 +1,16 @@
+---
+- hosts: all
+  gather_facts: yes
+  remote_user: 'devops'
+
+  tasks:
+    - name: 'Install the required packages'
+      apt:
+        name:
+          - 'php-fpm'
+          - 'nginx'
+          - 'mysql-server'
+        state: 'present'
+        update_cache: true
+      become: true 
+    
