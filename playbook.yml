@@ -8,9 +8,81 @@
       apt:
         name:
           - 'php-fpm'
+          - 'php-mysql'
           - 'nginx'
           - 'mysql-server'
         state: 'present'
         update_cache: true
-      become: true 
+      become: true
+    - name: 'Download and unzip wordpress files'
+      unarchive:
+        src: https://wordpress.org/latest.zip
+        dest: /var/www/html/
+        owner: 'www-data'
+        group: 'www-data'
+        remote_src: true
+      become: true
+
+    - name: 'Install python req for mysql module'
+      pip:
+        name: 'PyMySQL'
+        state: 'present'
     
+    - name: 'Set mysql root password'
+      mysql_user:
+        login_host: 'localhost'
+        login_user: 'root'
+        login_password: 'RootPass1234!'
+        name: 'root'
+        password: 'RootPass1234!' 
+        state: present
+        check_implicit_admin: yes
+        login_unix_socket: /var/run/mysqld/mysqld.sock
+      become: yes
+
+    - name: 'Create databese for Wordpress'
+      mysql_db:
+        name: 'wordpress'
+        state: 'present'
+        login_user: 'root'
+        login_password: 'RootPass1234!'
+      become: yes
+
+    - name: 'Create Wordpress DB user'
+      mysql_user:
+        name: 'wpuser'
+        password: 'wpuserpass123!'
+        update_password: 'on_create'
+        priv: "wordpress.*:ALL"
+        login_user: 'root'
+        login_password: 'RootPass1234!'
+        state: present
+      become: yes
+
+    - name: 'Upload wp-config file into wordpress folder'
+      copy:
+        src: 'wp-config.php'
+        dest: /var/www/html/wordpress/wp-config.php
+      become: true
+
+    - name: 'Upload nginx virtual host config file'
+      copy:
+        src: 'wordpress.conf'
+        dest: /etc/nginx/sites-available/wordpress.conf
+      become: true
+      
+    - name: Set wordpress.conf file symlink  in sites-enabled
+      file:
+        src: /etc/nginx/sites-available/wordpress.conf
+        dest: /etc/nginx/sites-enabled/wordpress.conf
+        state: link
+      become: true
+    
+    - name: 'Restart nginx service'
+      service:
+        name: 'nginx'
+        state: 'restarted'
+      become: true
+  
+
+
